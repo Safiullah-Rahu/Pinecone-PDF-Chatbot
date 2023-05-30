@@ -16,6 +16,38 @@ import pinecone
 
 logger = logging.getLogger("AI_Chatbot")
 
+if os.path.exists(".env") and os.environ.get("OPENAI_API_KEY") is not None:
+    user_api_key = os.environ["OPENAI_API_KEY"]
+else:
+    with st.sidebar:
+        st.title("Authenticating Credentials")
+        with st.form("authentication"):
+            openai_api_key = st.text_input(
+                "OpenAI API Key",
+                type="password",
+                #help=OPENAI_HELP,
+                placeholder="This field is mandatory",
+            )
+            PINECONE_API_KEY = st.text_input(
+                "Pinecone API Key",
+                type="password",
+                #help=ACTIVELOOP_HELP,
+                placeholder="This field is mandatory",
+            )
+            PINECONE_ENV = st.text_input(
+                "Pinecone Env",
+                type="password",
+                #help=ACTIVELOOP_HELP,
+                placeholder="This field is mandatory",
+            )
+            submitted = st.form_submit_button("Submit")
+            if submitted:
+                authenticate(openai_api_key, PINECONE_API_KEY, PINECONE_ENV)
+
+os.environ["OPENAI_API_KEY"] = openai_api_key
+
+
+
 def authenticate(
     openai_api_key: str, PINECONE_API_KEY: str, PINECONE_ENV: str
 ) -> None:
@@ -184,36 +216,6 @@ functions = [
         "AI Chatbot",
         "Admin",
     ]
-
-if os.path.exists(".env") and os.environ.get("OPENAI_API_KEY") is not None:
-    user_api_key = os.environ["OPENAI_API_KEY"]
-else:
-    with st.sidebar:
-        st.title("Authenticating Credentials")
-        with st.form("authentication"):
-            openai_api_key = st.text_input(
-                "OpenAI API Key",
-                type="password",
-                #help=OPENAI_HELP,
-                placeholder="This field is mandatory",
-            )
-            PINECONE_API_KEY = st.text_input(
-                "Pinecone API Key",
-                type="password",
-                #help=ACTIVELOOP_HELP,
-                placeholder="This field is mandatory",
-            )
-            PINECONE_ENV = st.text_input(
-                "Pinecone Env",
-                type="password",
-                #help=ACTIVELOOP_HELP,
-                placeholder="This field is mandatory",
-            )
-            submitted = st.form_submit_button("Submit")
-            if submitted:
-                authenticate(openai_api_key, PINECONE_API_KEY, PINECONE_ENV)
-
-os.environ["OPENAI_API_KEY"] = openai_api_key
 
 
 
