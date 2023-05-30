@@ -102,6 +102,7 @@ def admin():
         embeddings = OpenAIEmbeddings(model = 'text-embedding-ada-002')
         st.success("Document Loaded Successfully!")
         first_t = st.checkbox('Uploading Document First time.')
+        st.write("---")
         second_t = st.checkbox('Uploading Document Second time and onwards...')
         if first_t:
             st.info('Initializing Document Uploading to DB...')
