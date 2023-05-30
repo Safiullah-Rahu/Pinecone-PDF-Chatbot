@@ -1,9 +1,13 @@
+import os 
+
+if os.path.exists(".env") and os.environ.get("OPENAI_API_KEY") is None:
+    os.environ["OPENAI_API_KEY"] = openai_api_key
+
 import streamlit as st
 from streamlit_chat import message
 import logging
 import openai 
 import tempfile
-import os
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.chat_models import ChatOpenAI
 from langchain.chains import RetrievalQA, ConversationalRetrievalChain
@@ -212,8 +216,7 @@ with st.sidebar:
 
 
 selected_function = st.sidebar.selectbox("Select Option", functions)
-if os.path.exists(".env") and os.environ.get("OPENAI_API_KEY") is None:
-    os.environ["OPENAI_API_KEY"] = openai_api_key
+
 main()
 if selected_function == "AI Chatbot":
     chat()
