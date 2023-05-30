@@ -18,6 +18,7 @@ logger = logging.getLogger("AI_Chatbot")
 st.set_page_config(
     page_title="AI Chatbot", layout="wide", initial_sidebar_state="expanded"
 )
+os.environ["OPENAI_API_KEY"] = 'openai_api_key'
 if os.path.exists(".env") and os.environ.get("OPENAI_API_KEY") is not None:
     user_api_key = os.environ["OPENAI_API_KEY"]
 else:
