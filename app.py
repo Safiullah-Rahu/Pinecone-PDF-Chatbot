@@ -1,8 +1,4 @@
 import os 
-
-if os.path.exists(".env") and os.environ.get("OPENAI_API_KEY") is None:
-    os.environ["OPENAI_API_KEY"] = openai_api_key
-
 import streamlit as st
 from streamlit_chat import message
 import logging
@@ -189,7 +185,10 @@ functions = [
         "Admin",
     ]
 
-with st.sidebar:
+if os.path.exists(".env") and os.environ.get("OPENAI_API_KEY") is not None:
+    user_api_key = os.environ["OPENAI_API_KEY"]
+else:
+    with st.sidebar:
     st.title("Authenticating Credentials")
     with st.form("authentication"):
         openai_api_key = st.text_input(
@@ -213,6 +212,9 @@ with st.sidebar:
         submitted = st.form_submit_button("Submit")
         if submitted:
             authenticate(openai_api_key, PINECONE_API_KEY, PINECONE_ENV)
+
+os.environ["OPENAI_API_KEY"] = openai_api_key
+
 
 
 selected_function = st.sidebar.selectbox("Select Option", functions)
