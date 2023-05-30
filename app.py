@@ -18,35 +18,6 @@ logger = logging.getLogger("AI_Chatbot")
 st.set_page_config(
     page_title="AI Chatbot", layout="wide", initial_sidebar_state="expanded"
 )
-os.environ["OPENAI_API_KEY"] = 'openai_api_key'
-
-with st.sidebar:
-    st.title("Authenticating Credentials")
-    with st.form("authentication"):
-        openai_api_key = st.text_input(
-            "OpenAI API Key",
-            type="password",
-            #help=OPENAI_HELP,
-            placeholder="This field is mandatory",
-        )
-        PINECONE_API_KEY = st.text_input(
-            "Pinecone API Key",
-            type="password",
-            #help=ACTIVELOOP_HELP,
-            placeholder="This field is mandatory",
-        )
-        PINECONE_ENV = st.text_input(
-            "Pinecone Env",
-            type="password",
-            #help=ACTIVELOOP_HELP,
-            placeholder="This field is mandatory",
-        )
-        submitted = st.form_submit_button("Submit")
-        if submitted:
-            authenticate(openai_api_key, PINECONE_API_KEY, PINECONE_ENV)
-
-os.environ["OPENAI_API_KEY"] = openai_api_key
-
 
 
 def authenticate(
@@ -209,6 +180,32 @@ def chat():
         st.session_state['generated'] = []
         st.session_state['past'] = []
 
+with st.sidebar:
+    st.title("Authenticating Credentials")
+    with st.form("authentication"):
+        openai_api_key = st.text_input(
+            "OpenAI API Key",
+            type="password",
+            #help=OPENAI_HELP,
+            placeholder="This field is mandatory",
+        )
+        PINECONE_API_KEY = st.text_input(
+            "Pinecone API Key",
+            type="password",
+            #help=ACTIVELOOP_HELP,
+            placeholder="This field is mandatory",
+        )
+        PINECONE_ENV = st.text_input(
+            "Pinecone Env",
+            type="password",
+            #help=ACTIVELOOP_HELP,
+            placeholder="This field is mandatory",
+        )
+        submitted = st.form_submit_button("Submit")
+        if submitted:
+            authenticate(openai_api_key, PINECONE_API_KEY, PINECONE_ENV)
+
+os.environ["OPENAI_API_KEY"] = openai_api_key
 
 functions = [
         "AI Chatbot",
