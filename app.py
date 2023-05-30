@@ -15,7 +15,9 @@ import pinecone
 
 
 logger = logging.getLogger("AI_Chatbot")
-
+st.set_page_config(
+    page_title="AI Chatbot", layout="wide", initial_sidebar_state="expanded"
+)
 if os.path.exists(".env") and os.environ.get("OPENAI_API_KEY") is not None:
     user_api_key = os.environ["OPENAI_API_KEY"]
 else:
@@ -95,9 +97,6 @@ def authenticate(
 
 # # Page options and header
 # st.set_option("client.showErrorDetails", True)
-st.set_page_config(
-    page_title="AI Chatbot", layout="wide", initial_sidebar_state="expanded"
-)
 
 
 def main():
