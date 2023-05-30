@@ -212,8 +212,8 @@ with st.sidebar:
 
 
 selected_function = st.sidebar.selectbox("Select Option", functions)
-if os.path.exists(".env") and os.environ.get("OPENAI_API_KEY") is not None:
-    pass
+if os.path.exists(".env") and os.environ.get("OPENAI_API_KEY") is None:
+    os.environ["OPENAI_API_KEY"] = openai_api_key
 main()
 if selected_function == "AI Chatbot":
     chat()
