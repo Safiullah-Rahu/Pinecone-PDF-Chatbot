@@ -93,6 +93,8 @@ def admin():
     pinecone_index = "aichat"
     pinecone.init(api_key=PINECONE_API_KEY, environment=PINECONE_ENV)
     uploaded_files = st.file_uploader("Upload", type=["pdf"], label_visibility="collapsed")#, accept_multiple_files = True)
+    if pinecone_index in pinecone.list_indexes():
+        pinecone.delete_index(pinecone_index)
     if uploaded_files is not None:
         with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
                 tmp_file.write(uploaded_files.read())
