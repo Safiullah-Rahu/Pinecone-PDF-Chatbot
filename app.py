@@ -107,7 +107,7 @@ def admin():
         if first_t:
             if pinecone_index in pinecone.list_indexes():
                 pinecone.delete_index(pinecone_index)
-            time.delay(20)
+            time.sleep(20)
             st.info('Initializing Document Uploading to DB...')
             pinecone.create_index(
                     name=pinecone_index,
