@@ -214,6 +214,7 @@ with st.sidebar:
 os.environ["OPENAI_API_KEY"] = openai_api_key
 
 functions = [
+        "Home",
         "AI Chatbot",
         "Admin",
     ]
@@ -221,9 +222,9 @@ functions = [
 
 
 selected_function = st.sidebar.selectbox("Select Option", functions)
-
-main()
-if selected_function == "AI Chatbot":
+if selected_function == "Home":
+    main()
+elif selected_function == "AI Chatbot":
     chat()
 elif selected_function == "Admin":
     passw = st.sidebar.text_input("Enter your password: ", type="password")
