@@ -218,7 +218,7 @@ def chat():
 
 
 
-os.environ["OPENAI_API_KEY"] = openai_api_key
+#os.environ["OPENAI_API_KEY"] = openai_api_key
 
 functions = [
         "Home",
