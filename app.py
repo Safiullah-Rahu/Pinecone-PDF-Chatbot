@@ -90,6 +90,7 @@ def main():
 
     
 def admin():
+    openai_api_key = ""
     with st.sidebar:
         st.title("Authenticating Credentials")
         with st.form("authentication"):
