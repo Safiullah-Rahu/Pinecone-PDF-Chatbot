@@ -90,31 +90,6 @@ def main():
 
     
 def admin():
-    openai_api_key = ""
-    with st.sidebar:
-        st.title("Authenticating Credentials")
-        with st.form("authentication"):
-            openai_api_key = st.text_input(
-                "OpenAI API Key",
-                type="password",
-                #help=OPENAI_HELP,
-                placeholder="This field is mandatory",
-            )
-            PINECONE_API_KEY = st.text_input(
-                "Pinecone API Key",
-                type="password",
-                #help=ACTIVELOOP_HELP,
-                placeholder="This field is mandatory",
-            )
-            PINECONE_ENV = st.text_input(
-                "Pinecone Env",
-                type="password",
-                #help=ACTIVELOOP_HELP,
-                placeholder="This field is mandatory",
-            )
-            submitted = st.form_submit_button("Submit")
-        if submitted:
-            authenticate(openai_api_key, PINECONE_API_KEY, PINECONE_ENV)
     pinecone_index = "aichat"
     pinecone.init(api_key=PINECONE_API_KEY, environment=PINECONE_ENV)
     #index_description = pinecone.describe_index(pinecone_index)
@@ -234,6 +209,31 @@ if selected_function == "Home":
 elif selected_function == "AI Chatbot":
     chat()
 elif selected_function == "Admin":
+    openai_api_key = ""
+    with st.sidebar:
+        st.title("Authenticating Credentials")
+        with st.form("authentication"):
+            openai_api_key = st.text_input(
+                "OpenAI API Key",
+                type="password",
+                #help=OPENAI_HELP,
+                placeholder="This field is mandatory",
+            )
+            PINECONE_API_KEY = st.text_input(
+                "Pinecone API Key",
+                type="password",
+                #help=ACTIVELOOP_HELP,
+                placeholder="This field is mandatory",
+            )
+            PINECONE_ENV = st.text_input(
+                "Pinecone Env",
+                type="password",
+                #help=ACTIVELOOP_HELP,
+                placeholder="This field is mandatory",
+            )
+            submitted = st.form_submit_button("Submit")
+        if submitted:
+            authenticate(openai_api_key, PINECONE_API_KEY, PINECONE_ENV)
     passw = st.sidebar.text_input("Enter your password: ", type="password")
     if passw == "ai4chat":
         admin()
