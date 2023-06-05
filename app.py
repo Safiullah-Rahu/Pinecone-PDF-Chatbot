@@ -115,42 +115,42 @@ def admin():
             submitted = st.form_submit_button("Submit")
         if submitted:
             authenticate(openai_api_key, PINECONE_API_KEY, PINECONE_ENV)
-        pinecone_index = "aichat"
-        pinecone.init(api_key=PINECONE_API_KEY, environment=PINECONE_ENV)
-        #index_description = pinecone.describe_index(pinecone_index)
-        if pinecone_index in pinecone.list_indexes():
-            index = pinecone.Index(pinecone_index)
-            index_stats_response = index.describe_index_stats()
-            st.info(f"The Documents available in index: {list(index_stats_response['namespaces'].keys())}")
-        uploaded_files = st.file_uploader("Upload", type=["pdf"], label_visibility="collapsed")#, accept_multiple_files = True
-        if uploaded_files is not None:
-            with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
-                    tmp_file.write(uploaded_files.read())
-            loader = PyPDFLoader(tmp_file.name)
-            pages = loader.load_and_split()
-            os.remove(tmp_file.name)
-            embeddings = OpenAIEmbeddings(model = 'text-embedding-ada-002')
-            st.success("Document Loaded Successfully!")
-            first_t = st.checkbox('Uploading Document First time.')
-            st.write("---")
-            second_t = st.checkbox('Uploading Document Second time and onwards...')
-            if first_t:
-                if pinecone_index in pinecone.list_indexes():
-                    pinecone.delete_index(pinecone_index)
-                time.sleep(50)
-                st.info('Initializing Document Uploading to DB...')
-                pinecone.create_index(
-                        name=pinecone_index,
-                        metric='cosine',
-                        dimension=1536  # 1536 dim of text-embedding-ada-002
-                        )
-                time.sleep(50)
-                vector_store = Pinecone.from_documents(pages, embeddings, index_name=pinecone_index, namespace=uploaded_files.name)
-                st.success("Document Uploaded Successfully!")
-            elif second_t:
-                st.info('Initializing Document Uploading to DB...')
-                vector_store = Pinecone.from_documents(pages, embeddings, index_name=pinecone_index, namespace=uploaded_files.name)
-                st.success("Document Uploaded Successfully!")
+    pinecone_index = "aichat"
+    pinecone.init(api_key=PINECONE_API_KEY, environment=PINECONE_ENV)
+    #index_description = pinecone.describe_index(pinecone_index)
+    if pinecone_index in pinecone.list_indexes():
+        index = pinecone.Index(pinecone_index)
+        index_stats_response = index.describe_index_stats()
+        st.info(f"The Documents available in index: {list(index_stats_response['namespaces'].keys())}")
+    uploaded_files = st.file_uploader("Upload", type=["pdf"], label_visibility="collapsed")#, accept_multiple_files = True
+    if uploaded_files is not None:
+        with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
+                tmp_file.write(uploaded_files.read())
+        loader = PyPDFLoader(tmp_file.name)
+        pages = loader.load_and_split()
+        os.remove(tmp_file.name)
+        embeddings = OpenAIEmbeddings(model = 'text-embedding-ada-002')
+        st.success("Document Loaded Successfully!")
+        first_t = st.checkbox('Uploading Document First time.')
+        st.write("---")
+        second_t = st.checkbox('Uploading Document Second time and onwards...')
+        if first_t:
+            if pinecone_index in pinecone.list_indexes():
+                pinecone.delete_index(pinecone_index)
+            time.sleep(50)
+            st.info('Initializing Document Uploading to DB...')
+            pinecone.create_index(
+                    name=pinecone_index,
+                    metric='cosine',
+                    dimension=1536  # 1536 dim of text-embedding-ada-002
+                    )
+            time.sleep(50)
+            vector_store = Pinecone.from_documents(pages, embeddings, index_name=pinecone_index, namespace=uploaded_files.name)
+            st.success("Document Uploaded Successfully!")
+        elif second_t:
+            st.info('Initializing Document Uploading to DB...')
+            vector_store = Pinecone.from_documents(pages, embeddings, index_name=pinecone_index, namespace=uploaded_files.name)
+            st.success("Document Uploaded Successfully!")
 
 
 def chat():
