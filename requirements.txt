@@ -4,6 +4,5 @@ langchain
 openai
 tiktoken
 pypdf
-protobuf==2.3.0
 pinecone-client
 #pinecone-client[grpc]
