@@ -93,9 +93,10 @@ def admin():
     pinecone_index = "aichat"
     pinecone.init(api_key=PINECONE_API_KEY, environment=PINECONE_ENV)
     #index_description = pinecone.describe_index(pinecone_index)
-    index = pinecone.Index(pinecone_index)
-    index_stats_response = index.describe_index_stats()
-    st.info(list(index_stats_response['namespaces'].keys()))
+    if pinecone_index in pinecone.list_indexes():
+        index = pinecone.Index(pinecone_index)
+        index_stats_response = index.describe_index_stats()
+        st.info(f"The Documents available in index: {list(index_stats_response['namespaces'].keys())}")
     uploaded_files = st.file_uploader("Upload", type=["pdf"], label_visibility="collapsed")#, accept_multiple_files = True
     if uploaded_files is not None:
         with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
