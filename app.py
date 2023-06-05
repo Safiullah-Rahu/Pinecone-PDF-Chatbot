@@ -201,6 +201,10 @@ functions = [
         "Admin",
     ]
 
+st.session_state["openai_api_key"] = ""
+st.session_state["PINECONE_API_KEY"] = ""
+st.session_state["PINECONE_ENV"] = ""
+
 openai_api_key = st.session_state["openai_api_key"]
 PINECONE_API_KEY = st.session_state["PINECONE_API_KEY"]
 PINECONE_ENV = st.session_state["PINECONE_ENV"]
