@@ -201,7 +201,9 @@ functions = [
         "Admin",
     ]
 
-
+openai_api_key = os.environ["OPENAI_API_KEY"]
+PINECONE_API_KEY = os.environ["PINECONE_API_KEY"]
+PINECONE_ENV = os.environ["PINECONE_ENV"]
 
 selected_function = st.sidebar.selectbox("Select Option", functions)
 if selected_function == "Home":
