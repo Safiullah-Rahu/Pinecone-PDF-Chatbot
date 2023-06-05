@@ -95,7 +95,6 @@ def admin():
     index_description = pinecone.describe_index(pinecone_index)
     st.info(index_description)
     uploaded_files = st.file_uploader("Upload", type=["pdf"], label_visibility="collapsed")#, accept_multiple_files = True
-    st.write(uploaded_files.name)
     if uploaded_files is not None:
         with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
                 tmp_file.write(uploaded_files.read())
@@ -118,11 +117,11 @@ def admin():
                     dimension=1536  # 1536 dim of text-embedding-ada-002
                     )
             time.sleep(50)
-            vector_store = Pinecone.from_documents(pages, embeddings, index_name=pinecone_index)
+            vector_store = Pinecone.from_documents(pages, embeddings, index_name=pinecone_index, namespace=uploaded_files.name)
             st.success("Document Uploaded Successfully!")
         elif second_t:
             st.info('Initializing Document Uploading to DB...')
-            vector_store = Pinecone.from_documents(pages, embeddings, index_name=pinecone_index)
+            vector_store = Pinecone.from_documents(pages, embeddings, index_name=pinecone_index, namespace=uploaded_files.name)
             st.success("Document Uploaded Successfully!")
 
 
