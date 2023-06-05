@@ -113,8 +113,8 @@ def admin():
                 placeholder="This field is mandatory",
             )
             submitted = st.form_submit_button("Submit")
-    if submitted:
-        authenticate(openai_api_key, PINECONE_API_KEY, PINECONE_ENV)
+        if submitted:
+            authenticate(openai_api_key, PINECONE_API_KEY, PINECONE_ENV)
         pinecone_index = "aichat"
         pinecone.init(api_key=PINECONE_API_KEY, environment=PINECONE_ENV)
         #index_description = pinecone.describe_index(pinecone_index)
