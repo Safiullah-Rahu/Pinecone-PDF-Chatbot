@@ -95,6 +95,7 @@ def admin():
     index_description = pinecone.describe_index(pinecone_index)
     st.info(index_description)
     uploaded_files = st.file_uploader("Upload", type=["pdf"], label_visibility="collapsed")#, accept_multiple_files = True
+    st.write(uploaded_files.name)
     if uploaded_files is not None:
         with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
                 tmp_file.write(uploaded_files.read())
