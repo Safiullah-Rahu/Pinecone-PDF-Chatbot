@@ -5,4 +5,4 @@ openai
 tiktoken
 pypdf
 pinecone-client
-pinecone-client[grpc]
+#pinecone-client[grpc]
