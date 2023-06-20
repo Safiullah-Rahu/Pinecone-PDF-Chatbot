@@ -203,10 +203,10 @@ def chat():
         # chain_input = {"question": query}#, "chat_history": st.session_state["history"]}
         # result = chain(chain_input)
         llm = ChatOpenAI(model=model_name)
-        docs = retriever.get_relevant_documents(query)
-        qa = load_qa_chain(llm=llm, chain_type="stuff")
+        #docs = retriever.get_relevant_documents(query)
+        qa = RetrievalQA.from_chain_type(llm, chain_type="stuff", retriever=retriever)
         # Run the query through the RetrievalQA model
-        result = qa.run(input_documents=docs, question=query) #chain({"question": query, "chat_history": st.session_state['history']})
+        result = qa.run(query) #chain({"question": query, "chat_history": st.session_state['history']})
         st.session_state['history'].append((query, result))#["answer"]))
     
         return result   #["answer"]
