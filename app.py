@@ -170,11 +170,11 @@ def chat():
 
     
     # Create ChatOpenAI model and RetrievalQA
-    # llm = ChatOpenAI(model=model_name) # 'gpt-3.5-turbo',
-    # qa = RetrievalQA.from_chain_type(llm=llm,
-    #                                  chain_type="stuff", 
-    #                                  retriever=retriever, 
-    #                                  verbose=True)
+    llm = ChatOpenAI(model=model_name) # 'gpt-3.5-turbo',
+    qa = RetrievalQA.from_chain_type(llm=llm,
+                                     chain_type="stuff", 
+                                     retriever=retriever, 
+                                     verbose=True)
     
     # Define the prompt form
     def prompt_form():
@@ -202,11 +202,11 @@ def chat():
         
         # chain_input = {"question": query}#, "chat_history": st.session_state["history"]}
         # result = chain(chain_input)
-        llm = ChatOpenAI(model=model_name)
-        docs = db.similarity_search(query)
-        qa = load_qa_chain(llm=llm, chain_type="stuff")
+        # llm = ChatOpenAI(model=model_name)
+        # docs = db.similarity_search(query)
+        # qa = load_qa_chain(llm=llm, chain_type="stuff")
         # Run the query through the RetrievalQA model
-        result = qa.run(input_documents=docs, question=query) #chain({"question": query, "chat_history": st.session_state['history']})
+        result = qa.run(query) #chain({"question": query, "chat_history": st.session_state['history']})
         st.session_state['history'].append((query, result))#["answer"]))
     
         return result   #["answer"]
