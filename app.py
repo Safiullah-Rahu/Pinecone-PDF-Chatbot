@@ -129,6 +129,7 @@ def admin():
             time.sleep(80)
 
             # Upload documents to the Pinecone index
+            st.write(pages)
             vector_store = Pinecone.from_documents(pages, embeddings, index_name=pinecone_index, namespace=uploaded_files.name)
             
             # Display success message
