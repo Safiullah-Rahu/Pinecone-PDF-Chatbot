@@ -80,7 +80,10 @@ def admin():
     if uploaded_files is not None:
         # Extract the file extension
         file_extension =  os.path.splitext(uploaded_files.name)[1]
-
+        if file_extension == ".pdf":
+            st.write("This is PDF File")
+        elif file_extension == ".txt":
+            st.write("This is Text File")
         # # Create a temporary file and write the uploaded file content
         # with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
         #     tmp_file.write(uploaded_files.read())
