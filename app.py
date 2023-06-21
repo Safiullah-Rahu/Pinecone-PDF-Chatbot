@@ -77,6 +77,9 @@ def admin():
         # loader = PyPDFLoader(tmp_file.name)
         # pages = loader.load_and_split()
         os.remove(tmp_file.name)
+        # Display the uploaded file content
+        file_container = st.expander(f"Click here to see your uploaded {uploaded_files.name} file:")
+        file_container.write(pages)
         embeddings = OpenAIEmbeddings(model = 'text-embedding-ada-002')
         st.success("Document Loaded Successfully!")
         first_t = st.checkbox('Uploading Document First time.')
