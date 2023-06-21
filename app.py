@@ -11,6 +11,7 @@ from langchain.chat_models import ChatOpenAI
 from langchain.chains import RetrievalQA, ConversationalRetrievalChain
 from langchain.document_loaders import PyPDFLoader
 from langchain.document_loaders import TextLoader
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.chains.conversational_retrieval.prompts import CONDENSE_QUESTION_PROMPT
 from langchain.chains.question_answering import load_qa_chain
 from langchain.vectorstores import Pinecone
@@ -80,20 +81,20 @@ def admin():
         # Extract the file extension
         file_extension =  os.path.splitext(uploaded_files.name)[1]
 
-        # Create a temporary file and write the uploaded file content
-        with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
-            tmp_file.write(uploaded_files.read())
+        # # Create a temporary file and write the uploaded file content
+        # with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
+        #     tmp_file.write(uploaded_files.read())
         
-        # Process the uploaded file based on its extension
-        if file_extension == ".pdf":
-            loader = PyPDFLoader(tmp_file.name)
-            pages = loader.load_and_split()
-        elif file_extension == ".txt":
-            loader = TextLoader(file_path=tmp_file.name, encoding="utf-8")
-            pages = loader.load_and_split()
+        # # Process the uploaded file based on its extension
+        # if file_extension == ".pdf":
+        #     loader = PyPDFLoader(tmp_file.name)
+        #     pages = loader.load_and_split()
+        # elif file_extension == ".txt":
+        #     loader = TextLoader(file_path=tmp_file.name, encoding="utf-8")
+        #     pages = loader.load_and_split()
 
-        # Remove the temporary file
-        os.remove(tmp_file.name)
+        # # Remove the temporary file
+        # os.remove(tmp_file.name)
 
         # Initialize OpenAI embeddings
         embeddings = OpenAIEmbeddings(model = 'text-embedding-ada-002')
@@ -127,9 +128,17 @@ def admin():
                     dimension=1536  # 1536 dim of text-embedding-ada-002
                     )
             time.sleep(80)
-
+            # Create a temporary file and write the uploaded file content
+            with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
+                tmp_file.write(uploaded_files.read())
+        
+            # Process the uploaded file based on its extension
+            if file_extension == ".pdf":
+                loader = PyPDFLoader(tmp_file.name)
+                pages = loader.load_and_split()
+            # Remove the temporary file
+            os.remove(tmp_file.name)
             # Upload documents to the Pinecone index
-            st.write(pages)
             vector_store = Pinecone.from_documents(pages, embeddings, index_name=pinecone_index, namespace=uploaded_files.name)
             
             # Display success message
@@ -137,7 +146,17 @@ def admin():
         
         elif second_t:
             st.info('Initializing Document Uploading to DB...')
+            # Create a temporary file and write the uploaded file content
+            with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
+                tmp_file.write(uploaded_files.read())
+        
+            # Process the uploaded file based on its extension
+            if file_extension == ".txt":
+                loader = TextLoader(file_path=tmp_file.name, encoding="utf-8")
+                pages = loader.load_and_split()
 
+            # Remove the temporary file
+            os.remove(tmp_file.name)
             # Upload documents to the Pinecone index
             vector_store = Pinecone.from_documents(pages, embeddings, index_name=pinecone_index, namespace=uploaded_files.name)
             
@@ -146,6 +165,9 @@ def admin():
 
 
 def chat():
+    # Initialize Pinecone with API key and environment
+    pinecone.init(api_key=PINECONE_API_KEY, environment=PINECONE_ENV)
+    
     # Set the model name and Pinecone index name
     model_name = "gpt-3.5-turbo" 
     pinecone_index = "aichat"
