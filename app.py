@@ -118,7 +118,7 @@ def admin():
             # Delete the existing index if it exists
             if pinecone_index in pinecone.list_indexes():
                 pinecone.delete_index(pinecone_index)
-            time.sleep(50)
+            time.sleep(70)
             st.info('Initializing Document Uploading to DB...')
 
             # Create a new Pinecone index
