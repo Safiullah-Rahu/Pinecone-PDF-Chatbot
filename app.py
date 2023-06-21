@@ -103,11 +103,11 @@ def admin():
                     dimension=1536  # 1536 dim of text-embedding-ada-002
                     )
             time.sleep(80)
-            vector_store = Pinecone.from_documents(pages, embeddings, index_name=pinecone_index)
+            vector_store = Pinecone.from_documents(pages, embeddings, index_name=pinecone_index, namespace=uploaded_files.name)
             st.success("Document Uploaded Successfully!")
         elif second_t:
             st.info('Initializing Document Uploading to DB...')
-            vector_store = Pinecone.from_documents(pages, embeddings, index_name=pinecone_index)
+            vector_store = Pinecone.from_documents(pages, embeddings, index_name=pinecone_index, namespace=uploaded_files.name)
             st.success("Document Uploaded Successfully!")
 
 
