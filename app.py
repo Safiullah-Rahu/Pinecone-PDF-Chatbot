@@ -99,9 +99,9 @@ def admin():
         # Initialize OpenAI embeddings
         embeddings = OpenAIEmbeddings(model = 'text-embedding-ada-002')
 
-        # Display the uploaded file content
-        file_container = st.expander(f"Click here to see your uploaded {uploaded_files.name} file:")
-        file_container.write(pages)
+        # # Display the uploaded file content
+        # file_container = st.expander(f"Click here to see your uploaded {uploaded_files.name} file:")
+        # file_container.write(pages)
 
         # Display success message
         st.success("Document Loaded Successfully!")
