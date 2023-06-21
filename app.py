@@ -61,12 +61,21 @@ def main():
 def admin():
     pinecone_index = "aichat"
     pinecone.init(api_key=PINECONE_API_KEY, environment=PINECONE_ENV)
-    uploaded_files = st.file_uploader("Upload", type=["pdf"], label_visibility="collapsed")#, accept_multiple_files = True
+    st.write("Upload PDF/TXT Files:")
+    uploaded_files = st.file_uploader("Upload", type=["pdf", "txt"], label_visibility="collapsed")#, accept_multiple_files = True
     if uploaded_files is not None:
+        file_extension =  os.path.splitext(uploaded_files.name)[1]
         with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
-                tmp_file.write(uploaded_files.read())
-        loader = PyPDFLoader(tmp_file.name)
-        pages = loader.load_and_split()
+            tmp_file.write(uploaded_files.read())
+            # Process the uploaded file based on its extension
+            if file_extension == ".pdf":
+                loader = PyPDFLoader(tmp_file.name)
+                pages = loader.load_and_split()
+            elif file_extension == ".txt":
+                loader = TextLoader(file_path=tmp_file.name, encoding="utf-8")
+                pages = loader.load_and_split()
+        # loader = PyPDFLoader(tmp_file.name)
+        # pages = loader.load_and_split()
         os.remove(tmp_file.name)
         embeddings = OpenAIEmbeddings(model = 'text-embedding-ada-002')
         st.success("Document Loaded Successfully!")
