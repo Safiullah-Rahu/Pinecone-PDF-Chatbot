@@ -114,7 +114,7 @@ def admin():
                     metric='cosine',
                     dimension=1536  # 1536 dim of text-embedding-ada-002
                     )
-            time.sleep(50)
+            time.sleep(80)
             vector_store = Pinecone.from_documents(pages, embeddings, index_name=pinecone_index)
             st.success("Document Uploaded Successfully!")
         elif second_t:
