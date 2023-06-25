@@ -128,7 +128,7 @@ def chat():
 
     # load a Pinecone index
     index = pinecone.Index(pinecone_index)
-    db = Pinecone(index, embeddings.embed_query, text_field)
+    db = Pinecone(index, embeddings.embed_query, text_field, namespace=namespa)
     retriever = db.as_retriever()
 
     # Enable GPT-4 model selection
