@@ -128,6 +128,7 @@ def chat():
 
     # load a Pinecone index
     index = pinecone.Index(pinecone_index)
+    namespa = "test-1"
     db = Pinecone(index, embeddings.embed_query, text_field, namespace=namespa)
     retriever = db.as_retriever()
 
