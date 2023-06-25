@@ -61,13 +61,14 @@ def main():
 def admin():
     pinecone_index = "aichat"
     pinecone.init(api_key=PINECONE_API_KEY, environment=PINECONE_ENV)
+    namespa = "test-1"
     # Check if the Pinecone index exists
-    # if pinecone_index in pinecone.list_indexes():
-    #     index = pinecone.Index(pinecone_index)
-    #     index_stats_response = index.describe_index_stats()
+    if pinecone_index in pinecone.list_indexes():
+        index = pinecone.Index(pinecone_index)
+        index_stats_response = index.describe_index_stats()
 
-    #     # Display the available documents in the index
-    #     st.info(f"The Documents available in index: {list(index_stats_response['namespaces'].keys())}")
+        # Display the available documents in the index
+        st.info(f"The Documents available in index: {list(index_stats_response['namespaces'].keys())}")
     st.write("Upload PDF/TXT Files:")
     uploaded_files = st.file_uploader("Upload", type=["pdf", "txt"], label_visibility="collapsed")#, accept_multiple_files = True
     if uploaded_files is not None:
@@ -103,11 +104,11 @@ def admin():
                     dimension=1536  # 1536 dim of text-embedding-ada-002
                     )
             time.sleep(80)
-            vector_store = Pinecone.from_documents(pages, embeddings, index_name=pinecone_index)
+            vector_store = Pinecone.from_documents(pages, embeddings, index_name=pinecone_index, namespace=namespa)
             st.success("Document Uploaded Successfully!")
         elif second_t:
             st.info('Initializing Document Uploading to DB...')
-            vector_store = Pinecone.from_documents(pages, embeddings, index_name=pinecone_index)
+            vector_store = Pinecone.from_documents(pages, embeddings, index_name=pinecone_index, namespace=namespa)
             st.success("Document Uploaded Successfully!")
 
 
