@@ -11,7 +11,6 @@ from langchain.chat_models import ChatOpenAI
 from langchain.chains import RetrievalQA, ConversationalRetrievalChain
 from langchain.document_loaders import PyPDFLoader
 from langchain.document_loaders import TextLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.chains.conversational_retrieval.prompts import CONDENSE_QUESTION_PROMPT
 from langchain.chains.question_answering import load_qa_chain
 from langchain.vectorstores import Pinecone
@@ -59,63 +58,123 @@ def main():
 
     
 def admin():
+    # Set the Pinecone index name
     pinecone_index = "aichat"
-    pinecone.init(api_key=PINECONE_API_KEY, environment=PINECONE_ENV)
-    namespa = "test-1"
-    # Check if the Pinecone index exists
-    if pinecone_index in pinecone.list_indexes():
-        index = pinecone.Index(pinecone_index)
-        index_stats_response = index.describe_index_stats()
 
-        # Display the available documents in the index
-        st.info(f"The Documents available in index: {list(index_stats_response['namespaces'].keys())}")
+    # Initialize Pinecone with API key and environment
+    pinecone.init(api_key=PINECONE_API_KEY, environment=PINECONE_ENV)
+
+    #namespa = st.text_input("Enter Namespace Name: ")
+    exist_name = st.checkbox('Use Existing Namespace to Upload Docs')
+    del_name = st.checkbox("Delete a Namespace")
+    new_name = st.checkbox("Create New Namespace to Upload Docs")
+    if exist_name:
+        # Check if the Pinecone index exists
+        time.sleep(10)
+        if pinecone_index in pinecone.list_indexes():
+            index = pinecone.Index(pinecone_index)
+            index_stats_response = index.describe_index_stats()
+            # Display the available documents in the index
+            #st.info(f"The Documents available in index: {list(index_stats_response['namespaces'].keys())}")
+            # Define the options for the dropdown list
+            options = list(index_stats_response['namespaces'].keys())
+            
+            # Create a dropdown list
+            selected_namespace = st.selectbox("Select a namespace", options)
+            st.warning("Use 'Uploading Document Second time and onwards...' button to upload docs in existing namespace!", icon="⚠️")
+            # Display the selected value
+            st.write("You selected:", selected_namespace)
+    if del_name:
+        if pinecone_index in pinecone.list_indexes():
+            index = pinecone.Index(pinecone_index)
+            index_stats_response = index.describe_index_stats()
+            options = list(index_stats_response['namespaces'].keys())
+            selected_namespace = st.selectbox("Select a namespace to delete", options)
+            st.warning("The namespace will be permanently deleted!", icon="⚠️")
+            del_ = st.checkbox("Check this to delete Namespace")
+            if del_:
+                with st.spinner('Deleting Namespace...'):
+                    time.sleep(5)
+                    index.delete(namespace=selected_namespace, delete_all=True)
+                st.success('Successfully Deleted Namespace!')
+
+
+    if new_name:
+        selected_namespace = st.text_input("Enter Namespace Name: ")
+
+    # Prompt the user to upload PDF/TXT files
     st.write("Upload PDF/TXT Files:")
     uploaded_files = st.file_uploader("Upload", type=["pdf", "txt"], label_visibility="collapsed")#, accept_multiple_files = True
+    
     if uploaded_files is not None:
+        # Extract the file extension
         file_extension =  os.path.splitext(uploaded_files.name)[1]
+
+        # Create a temporary file and write the uploaded file content
         with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
             tmp_file.write(uploaded_files.read())
-            # Process the uploaded file based on its extension
-            if file_extension == ".pdf":
-                loader = PyPDFLoader(tmp_file.name)
-                pages = loader.load_and_split()
-            elif file_extension == ".txt":
-                loader = TextLoader(file_path=tmp_file.name, encoding="utf-8")
-                pages = loader.load_and_split()
-        # loader = PyPDFLoader(tmp_file.name)
-        # pages = loader.load_and_split()
+        
+        # Process the uploaded file based on its extension
+        if file_extension == ".pdf":
+            loader = PyPDFLoader(tmp_file.name)
+            pages = loader.load_and_split()
+        elif file_extension == ".txt":
+            loader = TextLoader(file_path=tmp_file.name, encoding="utf-8")
+            pages = loader.load_and_split()
+
+        # Remove the temporary file
         os.remove(tmp_file.name)
+
+        # Initialize OpenAI embeddings
+        embeddings = OpenAIEmbeddings(model = 'text-embedding-ada-002')
+
         # Display the uploaded file content
         file_container = st.expander(f"Click here to see your uploaded {uploaded_files.name} file:")
         file_container.write(pages)
-        embeddings = OpenAIEmbeddings(model = 'text-embedding-ada-002')
+
+        # Display success message
         st.success("Document Loaded Successfully!")
+
+        # Checkbox for the first time document upload
         first_t = st.checkbox('Uploading Document First time.')
+
         st.write("---")
+
+        # Checkbox for subsequent document uploads
         second_t = st.checkbox('Uploading Document Second time and onwards...')
+
         if first_t:
+            # Delete the existing index if it exists
             if pinecone_index in pinecone.list_indexes():
                 pinecone.delete_index(pinecone_index)
             time.sleep(50)
             st.info('Initializing Document Uploading to DB...')
+
+            # Create a new Pinecone index
             pinecone.create_index(
                     name=pinecone_index,
                     metric='cosine',
                     dimension=1536  # 1536 dim of text-embedding-ada-002
                     )
-            time.sleep(80)
-            vector_store = Pinecone.from_documents(pages, embeddings, index_name=pinecone_index, namespace=namespa)
+            time.sleep(50)
+
+            # Upload documents to the Pinecone index
+            vector_store = Pinecone.from_documents(pages, embeddings, index_name=pinecone_index, namespace= selected_namespace)
+            
+            # Display success message
             st.success("Document Uploaded Successfully!")
+        
         elif second_t:
             st.info('Initializing Document Uploading to DB...')
-            vector_store = Pinecone.from_documents(pages, embeddings, index_name=pinecone_index, namespace=namespa)
+
+            # Upload documents to the Pinecone index
+            vector_store = Pinecone.from_documents(pages, embeddings, index_name=pinecone_index, namespace= selected_namespace)
+            
+            # Display success message
             st.success("Document Uploaded Successfully!")
 
 
 def chat():
-    # Initialize Pinecone with API key and environment
-    pinecone.init(api_key=PINECONE_API_KEY, environment=PINECONE_ENV)
-    
     # Set the model name and Pinecone index name
     model_name = "gpt-3.5-turbo" 
     pinecone_index = "aichat"
@@ -126,12 +185,24 @@ def chat():
     # Create OpenAI embeddings
     embeddings = OpenAIEmbeddings(model = 'text-embedding-ada-002')
 
+    time.sleep(10)
+    if pinecone_index in pinecone.list_indexes():
+        index = pinecone.Index(pinecone_index)
+        index_stats_response = index.describe_index_stats()
+        # Display the available documents in the index
+        #st.info(f"The Documents available in index: {list(index_stats_response['namespaces'].keys())}")
+        # Define the options for the dropdown list
+        options = list(index_stats_response['namespaces'].keys())
+        
+        # Create a dropdown list
+        chat_namespace = st.selectbox("Select a namespace", options)
+
+
     # load a Pinecone index
     index = pinecone.Index(pinecone_index)
-    namespa = "test-1"
-    db = Pinecone(index, embeddings.embed_query, text_field, namespace=namespa)
+    db = Pinecone(index, embeddings.embed_query, text_field, namespace=chat_namespace)
     retriever = db.as_retriever()
-
+    
     # Enable GPT-4 model selection
     mod = st.sidebar.checkbox('Access GPT-4')
     if mod:
@@ -142,11 +213,11 @@ def chat():
 
     
     # Create ChatOpenAI model and RetrievalQA
-    llm = ChatOpenAI(model=model_name) # 'gpt-3.5-turbo',
-    qa = RetrievalQA.from_chain_type(llm=llm,
-                                     chain_type="stuff", 
-                                     retriever=retriever, 
-                                     verbose=True)
+    # llm = ChatOpenAI(model=model_name) # 'gpt-3.5-turbo',
+    # qa = RetrievalQA.from_chain_type(llm=llm,
+    #                                  chain_type="stuff", 
+    #                                  retriever=retriever, 
+    #                                  verbose=True)
     
     # Define the prompt form
     def prompt_form():
@@ -174,11 +245,11 @@ def chat():
         
         # chain_input = {"question": query}#, "chat_history": st.session_state["history"]}
         # result = chain(chain_input)
-        # llm = ChatOpenAI(model=model_name)
-        # docs = db.similarity_search(query)
-        # qa = load_qa_chain(llm=llm, chain_type="stuff")
+        llm = ChatOpenAI(model=model_name)
+        docs = db.similarity_search(query)
+        qa = load_qa_chain(llm=llm, chain_type="stuff")
         # Run the query through the RetrievalQA model
-        result = qa.run(query) #chain({"question": query, "chat_history": st.session_state['history']})
+        result = qa.run(input_documents=docs, question=query) #chain({"question": query, "chat_history": st.session_state['history']})
         st.session_state['history'].append((query, result))#["answer"]))
     
         return result   #["answer"]
@@ -193,8 +264,7 @@ def chat():
     if 'past' not in st.session_state:
         st.session_state['past'] = ["Hey ! 👋"]
     
-    # Reset chat button
-    res = st.button("Reset Chat")
+    
 
     # Prompt form input and chat processing
     is_ready, user_input = prompt_form()
@@ -202,7 +272,8 @@ def chat():
         output = conversational_chat(user_input)
         st.session_state['past'].append(user_input)
         st.session_state['generated'].append(output)
-
+    # Reset chat button
+    res = st.button("Reset Chat")
     # Display chat messages
     if st.session_state['generated']:
         for i in range(len(st.session_state['generated'])-1, -1, -1):
@@ -230,7 +301,9 @@ if selected_function == "Home":
     main()
 # Call the chat() function if "Chatbot" is selected
 elif selected_function == "Chatbot":
-    chat()
+    chat_pass = st.sidebar.text_input("Enter chat password: ", type="password")
+    if chat_pass == "chatme":
+        chat()
 elif selected_function == "Admin":
     # Display a text input box in the sidebar to enter the password
     passw = st.sidebar.text_input("Enter your password: ", type="password")
