@@ -13,7 +13,10 @@ from langchain.document_loaders import PyPDFLoader
 from langchain.document_loaders import TextLoader
 from langchain.chains.conversational_retrieval.prompts import CONDENSE_QUESTION_PROMPT
 from langchain.chains.question_answering import load_qa_chain
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import Pinecone
+import PyPDF2
+from io import StringIO
 import pinecone 
 
 # Setting up logging configuration
@@ -56,7 +59,25 @@ def main():
         unsafe_allow_html=True,
     )
 
-    
+
+@st.cache_data
+def load_docs(files):
+    all_text = []
+    for file_path in files:
+        file_extension = os.path.splitext(file_path.name)[1]
+        if file_extension == ".pdf":
+            pdf_reader = PyPDF2.PdfReader(file_path)
+            text = ""
+            for page in pdf_reader.pages:
+                text += page.extract_text()
+            all_text.append(text)
+        elif file_extension == ".txt":
+            stringio = StringIO(file_path.getvalue().decode("utf-8"))
+            text = stringio.read()
+            all_text.append(text)
+        else:
+            st.warning('Please provide txt or pdf.', icon="⚠️")
+    return all_text  
 def admin():
     # Set the Pinecone index name
     pinecone_index = "aichat"
@@ -82,6 +103,7 @@ def admin():
             # Create a dropdown list
             selected_namespace = st.selectbox("Select a namespace", options)
             st.warning("Use 'Uploading Document Second time and onwards...' button to upload docs in existing namespace!", icon="⚠️")
+            selected_namespace = selected_namespace
             # Display the selected value
             st.write("You selected:", selected_namespace)
     if del_name:
@@ -100,37 +122,23 @@ def admin():
 
 
     if new_name:
-        selected_namespace = st.text_input("Enter Namespace Name: ")
+        selected_namespace = st.text_input("Enter Namespace Name: (For Private Namespaces use .sec at the end, e.g., testname.sec)")
 
     # Prompt the user to upload PDF/TXT files
     st.write("Upload PDF/TXT Files:")
-    uploaded_files = st.file_uploader("Upload", type=["pdf", "txt"], label_visibility="collapsed")#, accept_multiple_files = True
+    uploaded_files = st.file_uploader("Upload", type=["pdf", "txt"], label_visibility="collapsed", accept_multiple_files = True)
     
     if uploaded_files is not None:
-        # Extract the file extension
-        file_extension =  os.path.splitext(uploaded_files.name)[1]
-
-        # Create a temporary file and write the uploaded file content
-        with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
-            tmp_file.write(uploaded_files.read())
-        
-        # Process the uploaded file based on its extension
-        if file_extension == ".pdf":
-            loader = PyPDFLoader(tmp_file.name)
-            pages = loader.load_and_split()
-        elif file_extension == ".txt":
-            loader = TextLoader(file_path=tmp_file.name, encoding="utf-8")
-            pages = loader.load_and_split()
-
-        # Remove the temporary file
-        os.remove(tmp_file.name)
+        documents = load_docs(uploaded_files)
+        text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
+        docs = text_splitter.create_documents(documents)
 
         # Initialize OpenAI embeddings
         embeddings = OpenAIEmbeddings(model = 'text-embedding-ada-002')
 
         # Display the uploaded file content
-        file_container = st.expander(f"Click here to see your uploaded {uploaded_files.name} file:")
-        file_container.write(pages)
+        file_container = st.expander(f"Click here to see your uploaded content:")
+        file_container.write(docs)
 
         # Display success message
         st.success("Document Loaded Successfully!")
@@ -156,10 +164,10 @@ def admin():
                     metric='cosine',
                     dimension=1536  # 1536 dim of text-embedding-ada-002
                     )
-            time.sleep(50)
+            time.sleep(80)
 
             # Upload documents to the Pinecone index
-            vector_store = Pinecone.from_documents(pages, embeddings, index_name=pinecone_index, namespace= selected_namespace)
+            vector_store = Pinecone.from_documents(docs, embeddings, index_name=pinecone_index, namespace= selected_namespace)
             
             # Display success message
             st.success("Document Uploaded Successfully!")
@@ -168,13 +176,14 @@ def admin():
             st.info('Initializing Document Uploading to DB...')
 
             # Upload documents to the Pinecone index
-            vector_store = Pinecone.from_documents(pages, embeddings, index_name=pinecone_index, namespace= selected_namespace)
+            vector_store = Pinecone.from_documents(docs, embeddings, index_name=pinecone_index, namespace= selected_namespace)
             
             # Display success message
             st.success("Document Uploaded Successfully!")
 
 
-def chat():
+
+def chat(chat_na):
     # Set the model name and Pinecone index name
     model_name = "gpt-3.5-turbo" 
     pinecone_index = "aichat"
@@ -185,22 +194,11 @@ def chat():
     # Create OpenAI embeddings
     embeddings = OpenAIEmbeddings(model = 'text-embedding-ada-002')
 
-    time.sleep(10)
-    if pinecone_index in pinecone.list_indexes():
-        index = pinecone.Index(pinecone_index)
-        index_stats_response = index.describe_index_stats()
-        # Display the available documents in the index
-        #st.info(f"The Documents available in index: {list(index_stats_response['namespaces'].keys())}")
-        # Define the options for the dropdown list
-        options = list(index_stats_response['namespaces'].keys())
-        
-        # Create a dropdown list
-        chat_namespace = st.selectbox("Select a namespace", options)
 
 
     # load a Pinecone index
     index = pinecone.Index(pinecone_index)
-    db = Pinecone(index, embeddings.embed_query, text_field, namespace=chat_namespace)
+    db = Pinecone(index, embeddings.embed_query, text_field, namespace=chat_na)
     retriever = db.as_retriever()
     
     # Enable GPT-4 model selection
@@ -265,7 +263,7 @@ def chat():
         st.session_state['past'] = ["Hey ! 👋"]
     
     
-
+    st.write(f"Selected Namespace Name: {chat_na}")
     # Prompt form input and chat processing
     is_ready, user_input = prompt_form()
     if is_ready:
@@ -301,9 +299,38 @@ if selected_function == "Home":
     main()
 # Call the chat() function if "Chatbot" is selected
 elif selected_function == "Chatbot":
+    st.session_state.chat_namesp = ""
     chat_pass = st.sidebar.text_input("Enter chat password: ", type="password")
     if chat_pass == "chatme":
-        chat()
+        pinecone_index = "aichat"
+        time.sleep(5)
+        if pinecone_index in pinecone.list_indexes():
+            index = pinecone.Index(pinecone_index)
+            index_stats_response = index.describe_index_stats()
+            # Define the options for the dropdown list
+            options = list(index_stats_response['namespaces'].keys())
+
+        pri_na = st.sidebar.checkbox("Access Private Namespaces")
+        chat_namespace = None
+
+        # Check if private namespaces option is selected
+        if pri_na:
+            pri_pass = st.sidebar.text_input("Write access code:", type="password")
+            if pri_pass == "myns":
+                chat_namespace = st.sidebar.selectbox("All Namespaces", options)
+                st.session_state.chat_namesp = chat_namespace
+            else:
+                st.info("Enter the correct access code to use private namespaces!")
+        else:
+            # Filter the options to exclude strings ending with ".sec"
+            filtered_list = [string for string in options if not string.endswith(".sec")]
+            
+            # Create a dropdown list
+            chat_namespace = st.sidebar.selectbox("Select a namespace", filtered_list)
+            st.session_state.chat_namesp = chat_namespace
+
+        chat_na = st.session_state.chat_namesp
+        chat(chat_na)
 elif selected_function == "Admin":
     # Display a text input box in the sidebar to enter the password
     passw = st.sidebar.text_input("Enter your password: ", type="password")
