@@ -78,51 +78,12 @@ def load_docs(files):
         else:
             st.warning('Please provide txt or pdf.', icon="⚠️")
     return all_text  
-def admin():
+def admin(sel_ns):
     # Set the Pinecone index name
     pinecone_index = "aichat"
 
     # Initialize Pinecone with API key and environment
     pinecone.init(api_key=PINECONE_API_KEY, environment=PINECONE_ENV)
-
-    #namespa = st.text_input("Enter Namespace Name: ")
-    exist_name = st.checkbox('Use Existing Namespace to Upload Docs')
-    del_name = st.checkbox("Delete a Namespace")
-    new_name = st.checkbox("Create New Namespace to Upload Docs")
-    if exist_name:
-        # Check if the Pinecone index exists
-        time.sleep(10)
-        if pinecone_index in pinecone.list_indexes():
-            index = pinecone.Index(pinecone_index)
-            index_stats_response = index.describe_index_stats()
-            # Display the available documents in the index
-            #st.info(f"The Documents available in index: {list(index_stats_response['namespaces'].keys())}")
-            # Define the options for the dropdown list
-            options = list(index_stats_response['namespaces'].keys())
-            
-            # Create a dropdown list
-            selected_namespace = st.selectbox("Select a namespace", options)
-            st.warning("Use 'Uploading Document Second time and onwards...' button to upload docs in existing namespace!", icon="⚠️")
-            selected_namespace = selected_namespace
-            # Display the selected value
-            st.write("You selected:", selected_namespace)
-    if del_name:
-        if pinecone_index in pinecone.list_indexes():
-            index = pinecone.Index(pinecone_index)
-            index_stats_response = index.describe_index_stats()
-            options = list(index_stats_response['namespaces'].keys())
-            selected_namespace = st.selectbox("Select a namespace to delete", options)
-            st.warning("The namespace will be permanently deleted!", icon="⚠️")
-            del_ = st.checkbox("Check this to delete Namespace")
-            if del_:
-                with st.spinner('Deleting Namespace...'):
-                    time.sleep(5)
-                    index.delete(namespace=selected_namespace, delete_all=True)
-                st.success('Successfully Deleted Namespace!')
-
-
-    if new_name:
-        selected_namespace = st.text_input("Enter Namespace Name: (For Private Namespaces use .sec at the end, e.g., testname.sec)")
 
     # Prompt the user to upload PDF/TXT files
     st.write("Upload PDF/TXT Files:")
@@ -167,7 +128,7 @@ def admin():
             time.sleep(80)
 
             # Upload documents to the Pinecone index
-            vector_store = Pinecone.from_documents(docs, embeddings, index_name=pinecone_index, namespace= selected_namespace)
+            vector_store = Pinecone.from_documents(docs, embeddings, index_name=pinecone_index, namespace= sel_ns)
             
             # Display success message
             st.success("Document Uploaded Successfully!")
@@ -176,7 +137,7 @@ def admin():
             st.info('Initializing Document Uploading to DB...')
 
             # Upload documents to the Pinecone index
-            vector_store = Pinecone.from_documents(docs, embeddings, index_name=pinecone_index, namespace= selected_namespace)
+            vector_store = Pinecone.from_documents(docs, embeddings, index_name=pinecone_index, namespace= sel_ns)
             
             # Display success message
             st.success("Document Uploaded Successfully!")
@@ -294,6 +255,7 @@ functions = [
 # Display a select box in the sidebar to choose the desired function
 selected_function = st.sidebar.selectbox("Select Option", functions)
 
+
 # Call the main() function if "Home" is selected
 if selected_function == "Home":
     main()
@@ -332,9 +294,53 @@ elif selected_function == "Chatbot":
         chat_na = st.session_state.chat_namesp
         chat(chat_na)
 elif selected_function == "Admin":
+    pinecone_index = "aichat"
+    # Check if the Pinecone index exists
+    time.sleep(5)
+    if pinecone_index in pinecone.list_indexes():
+        index = pinecone.Index(pinecone_index)
+        index_stats_response = index.describe_index_stats()
+        # Display the available documents in the index
+        #st.info(f"The Documents available in index: {list(index_stats_response['namespaces'].keys())}")
+        # Define the options for the dropdown list
+        options = list(index_stats_response['namespaces'].keys())
+    st.session_state.sel_namespace = ""
     # Display a text input box in the sidebar to enter the password
     passw = st.sidebar.text_input("Enter your password: ", type="password")
     # Call the admin() function if the correct password is entered
     if passw == "ai4chat":
-        admin()
+        #namespa = st.text_input("Enter Namespace Name: ")
+        exist_name = st.checkbox('Use Existing Namespace to Upload Docs')
+        del_name = st.checkbox("Delete a Namespace")
+        new_name = st.checkbox("Create New Namespace to Upload Docs")
+        if exist_name:
+            st.write("---")
+            st.write("Existing Namespaces:👇")
+            st.write(options)
+            # Create a dropdown list
+            selected_namespace = st.text_input("Enter Existing Namespace Name: ") #st.sidebar.selectbox("Select a namespace", options)
+            st.session_state.sel_namespace = selected_namespace
+            st.warning("Use 'Uploading Document Second time and onwards...' button to upload docs in existing namespace!", icon="⚠️")
+            #selected_namespace = selected_namespace
+            # Display the selected value
+            st.write("You selected:", st.session_state.sel_namespace)
+        if del_name:
+            st.write("---")
+            st.write("Existing Namespaces:👇")
+            st.write(options)
+            # Create a dropdown list
+            selected_namespace = st.text_input("Enter Existing Namespace Name: ") #st.sidebar.selectbox("Select a namespace", options)
+            st.session_state.sel_namespace = selected_namespace
+            st.warning("The namespace will be permanently deleted!", icon="⚠️")
+            del_ = st.checkbox("Check this to delete Namespace")
+            if del_:
+                with st.spinner('Deleting Namespace...'):
+                    time.sleep(5)
+                    index.delete(namespace=st.session_state.sel_namespace, delete_all=True)
+                st.success('Successfully Deleted Namespace!')
+        if new_name:
+            selected_namespace = st.text_input("Enter Namespace Name: (For Private Namespaces use .sec at the end, e.g., testname.sec)")
+            st.session_state.sel_namespace = selected_namespace
+        sel_ns = st.session_state.sel_namespace
+        admin(sel_ns)
     
