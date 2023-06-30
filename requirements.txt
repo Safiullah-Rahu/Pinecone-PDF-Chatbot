@@ -6,3 +6,4 @@ tiktoken
 pypdf
 pinecone-client
 #pinecone-client[grpc]
+PyPDF2
